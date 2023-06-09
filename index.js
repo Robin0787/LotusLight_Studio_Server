@@ -23,19 +23,29 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
+    const userCollection = client.db("AllData").collection("users");
+    //---------------GET----------------------------------GET---------------------------GET
+    app.get("/users", async (req, res) => {
+      res.send({ users: "no-user" });
+    });
+    //--------------POST---------------------------------POST--------------------------POST
 
-    //GET---------GET---------GET---------GET--------GET--------GET
-    app.get('/users', async(req, res) => {
-        res.send({users: "no-user"});
-    })
-    //POST--------POST--------POST--------POST-------POST------POST
+    //--------------PUT---------------------------------PUT---------------------------PUT
+    // Storing the user to database for further usage
+    app.put("/store-user/:email", async (req, res) => {
+      const email = req.params.email;
+      const {details} = req.body;
+      const query = { email: email };
+      const updateDoc = {
+        $set: details,
+      };
+      const options = { upsert: true };
+      const result = await userCollection.updateOne(query, updateDoc, options);
+      res.send(result);
+    });
+    //-------------PATCH-------------------------------PATCH-------------------------PATCH
 
-    //PUT---------PUT---------PUT---------PUT--------PUT-------PUT
-
-    //PATCH-------PATCH-------PATCH-------PATCH------PATCH
-
-    //DELETE------DELETE------DELETE------DELETE-----DELETE
-
+    //------------DELETE------------------------------PATCH-------------------------PATCH
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
