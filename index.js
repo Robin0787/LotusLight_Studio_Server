@@ -29,6 +29,19 @@ async function run() {
       const result = await userCollection.find().toArray();
       res.send(result);
     });
+    // Getting all the instructors
+    app.get('/instructors', async(req, res) => {
+      const query = {role: 'instructor'};
+      const instructors = await userCollection.find(query).toArray();
+      res.send(instructors);
+    })
+    // Getting specific user role
+    app.get('/user-role/:email', async(req, res) => {
+      const email = req.params.email;
+      const query = {email: email};
+      const user = await userCollection.findOne(query);
+      res.send({role: user?.role || 'user'});
+    })
     //--------------POST---------------------------------POST--------------------------POST
 
     //--------------PUT---------------------------------PUT---------------------------PUT
