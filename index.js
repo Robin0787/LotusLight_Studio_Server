@@ -24,6 +24,7 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     // await client.connect();
     const userCollection = client.db("AllData").collection("users");
+    const classCollection = client.db("AllData").collection("classes");
     //---------------GET----------------------------------GET---------------------------GET
     app.get("/users", async (req, res) => {
       const result = await userCollection.find().toArray();
@@ -42,8 +43,20 @@ async function run() {
       const user = await userCollection.findOne(query);
       res.send({role: user?.role || 'user'});
     })
-    //--------------POST---------------------------------POST--------------------------POST
+    // Getting all classes based on email
+    app.get('/classes/:email', async(req, res) => {
+      const email = req.params.email;
+      const query = {instructorEmail: email};
+      const classes = await classCollection.find(query).toArray();
+      res.send(classes);
 
+    })
+    //--------------POST---------------------------------POST--------------------------POST
+    app.post('/add-class', async(req, res) => {
+      const classInfo = req.body;
+      const result = await classCollection.insertOne(classInfo);
+      res.send(result);
+    })
     //--------------PUT---------------------------------PUT---------------------------PUT
     // Storing the user to database for further usage
     app.put("/store-user/:email", async (req, res) => {
