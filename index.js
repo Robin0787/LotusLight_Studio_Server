@@ -68,6 +68,12 @@ async function run() {
       const result = await userCollection.find().toArray();
       res.send(result);
     })
+    // Getting all approved classes
+    app.get('/approved-classes', async(req, res) => {
+      const query = {status: 'approved'};
+      const result = await classCollection.find(query).toArray();
+      res.send(result);
+    })
     //--------------POST---------------------------------POST--------------------------POST
     // Posting class to database
     app.post('/add-class', async(req, res) => {
@@ -75,6 +81,13 @@ async function run() {
       const result = await classCollection.insertOne(classInfo);
       res.send(result);
     });
+    // Increasing instructors class number
+    app.post('/update-class-number/:email', async(req, res) => {
+      const email = req.params.email;
+      const query = {email: email};
+      const result = await userCollection.findOneAndUpdate(query, {$inc: {classes: 1}}, {returnOriginal: false});
+      res.send(result);
+    })
     //--------------PUT---------------------------------PUT---------------------------PUT
     // Storing the user to database for further usage
     app.put("/store-user/:email", async (req, res) => {
@@ -124,7 +137,8 @@ async function run() {
       const result = await userCollection.updateOne(query, updatedDoc, options);
       res.send(result);
     })
-    //------------DELETE------------------------------PATCH-------------------------PATCH
+    
+    //------------DELETE------------------------------DELETE-------------------------DELETE
     // Deleting specific instructors class based on id
     app.delete('/delete-class/:id', async(req, res) => {
       const id = req.params.id;
