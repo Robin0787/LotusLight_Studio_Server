@@ -1,4 +1,4 @@
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const express = require("express");
 const app = express();
 const port = process.env.PORT || 5000;
@@ -41,7 +41,7 @@ async function run() {
       const email = req.params.email;
       const query = {email: email};
       const user = await userCollection.findOne(query);
-      res.send({role: user?.role || 'user'});
+      res.send({role: user?.role || 'student'});
     })
     // Getting all classes based on email
     app.get('/classes/:email', async(req, res) => {
@@ -51,12 +51,30 @@ async function run() {
       res.send(classes);
 
     })
+    // Getting specific class details
+    app.get('/class-details/:id', async(req, res) => {
+      const id = req.params.id;
+      const query = {_id: new ObjectId(id)};
+      const result = await classCollection.findOne(query);
+      res.send(result);
+    })
+    // Getting all the classes form classCollection
+    app.get('/all-classes', async(req, res) => {
+      const result = (await classCollection.find().toArray()).reverse();
+      res.send(result);
+    })
+    // Getting all users
+    app.get('/all-users', async(req, res) => {
+      const result = await userCollection.find().toArray();
+      res.send(result);
+    })
     //--------------POST---------------------------------POST--------------------------POST
+    // Posting class to database
     app.post('/add-class', async(req, res) => {
       const classInfo = req.body;
       const result = await classCollection.insertOne(classInfo);
       res.send(result);
-    })
+    });
     //--------------PUT---------------------------------PUT---------------------------PUT
     // Storing the user to database for further usage
     app.put("/store-user/:email", async (req, res) => {
@@ -71,9 +89,49 @@ async function run() {
       res.send(result);
     });
     //-------------PATCH-------------------------------PATCH-------------------------PATCH
-
+    // Updating class info
+    app.patch('/update-class/:id', async(req, res) => {
+      const id = req.params.id;
+      const query = {_id: new ObjectId(id)};
+      const updateInfo = req.body;
+      const updateDoc = {
+        $set: {...updateInfo}
+      }
+      const result = await classCollection.updateOne(query, updateDoc);
+      res.send(result);
+    })
+    // Updating class status and feedback by admin
+    app.patch('/update-class-status/:id', async(req,res) => {
+      const id = req.params.id;
+      const updatedInfo = req.body;
+      const query = {_id: new ObjectId(id)};
+      const updateDoc = {
+        $set: {...updatedInfo}
+      }
+      const options = {upsert: true};
+      const result = await classCollection.updateOne(query, updateDoc, options);
+      res.send(result);
+    })
+    // Updating user status by admin
+    app.patch('/update-user/:id', async(req, res) => {
+      const id = req.params.id;
+      const {status} = req.body;
+      const query = {_id : new ObjectId(id)};
+      const updatedDoc = {
+        $set: {role: status}
+      }
+      const options = {upsert: true}
+      const result = await userCollection.updateOne(query, updatedDoc, options);
+      res.send(result);
+    })
     //------------DELETE------------------------------PATCH-------------------------PATCH
-
+    // Deleting specific instructors class based on id
+    app.delete('/delete-class/:id', async(req, res) => {
+      const id = req.params.id;
+      const query = {_id: new ObjectId(id)};
+      const result = await classCollection.deleteOne(query);
+      res.send(result);
+    })
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Successfully connected to Database!");
