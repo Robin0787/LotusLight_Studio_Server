@@ -1,5 +1,5 @@
-const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const express = require("express");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const app = express();
 const port = process.env.PORT || 5000;
 const cors = require("cors");
@@ -25,6 +25,7 @@ async function run() {
     // await client.connect();
     const userCollection = client.db("AllData").collection("users");
     const classCollection = client.db("AllData").collection("classes");
+    const selectedClassCollection = client.db("AllData").collection("selectedClasses");
     //---------------GET----------------------------------GET---------------------------GET
     app.get("/users", async (req, res) => {
       const result = await userCollection.find().toArray();
@@ -74,6 +75,20 @@ async function run() {
       const result = await classCollection.find(query).toArray();
       res.send(result);
     })
+    // Getting all selected classes based on user email
+    app.get('/selected-classes/:email', async(req, res) => {
+      const email = req.params.email;
+      const query = {userEmail: email};
+      const result = await selectedClassCollection.find(query).toArray();
+      res.send(result);
+    })
+    // Getting selected item details based on items id
+    app.get('/selected-item/:id', async(req, res) => {
+      const id = req.params.id;
+      const query = {_id: new ObjectId(id)};
+      const result = await selectedClassCollection.findOne(query);
+      res.send(result);
+    })
     //--------------POST---------------------------------POST--------------------------POST
     // Posting class to database
     app.post('/add-class', async(req, res) => {
@@ -86,6 +101,12 @@ async function run() {
       const email = req.params.email;
       const query = {email: email};
       const result = await userCollection.findOneAndUpdate(query, {$inc: {classes: 1}}, {returnOriginal: false});
+      res.send(result);
+    });
+    // Storing user selected Item;
+    app.post('/add-selected-class', async(req, res) => {
+      const selectedItem = req.body;
+      const result = await selectedClassCollection.insertOne(selectedItem);
       res.send(result);
     })
     //--------------PUT---------------------------------PUT---------------------------PUT
@@ -144,6 +165,13 @@ async function run() {
       const id = req.params.id;
       const query = {_id: new ObjectId(id)};
       const result = await classCollection.deleteOne(query);
+      res.send(result);
+    })
+    // Deleting students selected class based on id
+    app.delete('/delete-selected-class/:id', async(req, res) => {
+      const id = req.params.id;
+      const query = {_id: new ObjectId(id)};
+      const result = await selectedClassCollection.deleteOne(query);
       res.send(result);
     })
     // Send a ping to confirm a successful connection
