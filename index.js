@@ -27,6 +27,8 @@ async function run() {
     const userCollection = client.db("AllData").collection("users");
     const classCollection = client.db("AllData").collection("classes");
     const selectedClassCollection = client.db("AllData").collection("selectedClasses");
+    const enrolledClassCollection = client.db("AllData").collection("enrolledClasses");
+    const paymentCollection = client.db("AllData").collection("payments");
     //---------------GET----------------------------------GET---------------------------GET
     app.get("/users", async (req, res) => {
       const result = await userCollection.find().toArray();
@@ -90,6 +92,32 @@ async function run() {
       const result = await selectedClassCollection.findOne(query);
       res.send(result);
     })
+    // Getting all enrolled classes;
+    app.get('/enrolled-classes/:email', async(req, res) => {
+      const email = req.params.email;
+      const query = {userEmail: email};
+      const result = await enrolledClassCollection.find(query).toArray();
+      res.send(result);
+    })
+    // Getting payments based on user email
+    app.get('/payments/:email', async(req, res) => {
+      const email = req.params.email;
+      const query = {userEmail: email};
+      const result = (await paymentCollection.find(query).toArray()).reverse();
+      res.send(result);
+    });
+    // Getting specific instructors class
+    app.get('/instructor-classes/:email', async(req, res) => {
+      const email = req.params.email;
+      const query = { instructorEmail: email, status: 'approved'};
+      const result = await classCollection.find(query).toArray();
+      res.send(result);
+    })
+    // Getting six popular classes
+    app.get('/popular-classes', async (req, res) => {
+      const result = await classCollection.find({ enrolled: { $exists: true }, status: 'approved'}).sort({ enrolled: -1 }).toArray();
+      res.send(result);
+    })
     //--------------POST---------------------------------POST--------------------------POST
     // Posting class to database
     app.post('/add-class', async(req, res) => {
@@ -134,11 +162,18 @@ async function run() {
         payment_method_types: ['card']
       });
       res.send({ClientSecret: paymentIntent.client_secret});
+    });
+    app.post('/add-class-to-enrolled', async(req, res) => {
+      const body = req.body;
+      const result = await enrolledClassCollection.insertOne({...body});
+      res.send(result);
     })
     // Storing payment invoice 
-    // app.post('/store-payment-details', async(req, res)=>{
-      
-    // })
+    app.post('/store-payment-details', async(req, res)=>{
+      const body = req.body;
+      const result = await paymentCollection.insertOne({...body});
+      res.send(result);
+    })
     //--------------PUT---------------------------------PUT---------------------------PUT
     // Storing the user to database for further usage
     app.put("/store-user/:email", async (req, res) => {
