@@ -7,6 +7,7 @@ require("dotenv").config();
 
 app.use(cors());
 app.use(express.json());
+const stripe = require("stripe")(process.env.STRIPE_API_SECRET_KEY);
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.8nldzhn.mongodb.net/?retryWrites=true&w=majority`;
 
@@ -103,12 +104,41 @@ async function run() {
       const result = await userCollection.findOneAndUpdate(query, {$inc: {classes: 1}}, {returnOriginal: false});
       res.send(result);
     });
+    // Increasing instructors students number
+     app.post('/update-students-number/:email', async(req, res) => {
+      const email = req.params.email;
+      const query = {email: email};
+      const result = await userCollection.findOneAndUpdate(query, {$inc: {students: 1}}, {returnOriginal: false});
+      res.send(result);
+    });
+    // Increasing enrolled students based on classId
+    app.post('/update-enrolled-students/:id', async(req, res) => {
+      const id = req.params.id;
+      const query = {_id: new ObjectId(id)};
+      const result = await classCollection.findOneAndUpdate(query, {$inc: {enrolled: 1}}, {returnOriginal: false});
+      res.send(result);
+    });
     // Storing user selected Item;
     app.post('/add-selected-class', async(req, res) => {
       const selectedItem = req.body;
       const result = await selectedClassCollection.insertOne(selectedItem);
       res.send(result);
     })
+    // Creating payment intent
+    app.post('/create-payment-intent', async(req, res) => {
+      const {price} = req.body;
+      const amount = price * 100;
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount,
+        currency: 'usd',
+        payment_method_types: ['card']
+      });
+      res.send({ClientSecret: paymentIntent.client_secret});
+    })
+    // Storing payment invoice 
+    // app.post('/store-payment-details', async(req, res)=>{
+      
+    // })
     //--------------PUT---------------------------------PUT---------------------------PUT
     // Storing the user to database for further usage
     app.put("/store-user/:email", async (req, res) => {
