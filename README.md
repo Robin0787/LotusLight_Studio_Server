@@ -1,6 +1,6 @@
 ## Live link of this server -- https://lotuslight-studio-ghwpi2q3v-robin0787.vercel.app/
 
-### Live Link to this servers main website -- https://lotus-light-studio.web.app/
+### Live Link to Lotus Light Studio -- https://lotus-light-studio.web.app/
 
 ##### An ad-tech website that provides several classes for students to learn. The website has an admin and instructor panel where instructors can add classes and also remove their classes. After adding classes it will appear to admin to be approved. If admin approves it then it will display in the classes section and then students can enroll in the class. Admin manages all the users and classes of this website. Admin can make students instructors and admin and vice-versa after selecting classes from the class page. Users can show selected items in their dashboard selected-items route. After doing the payment the class will be moved to enrolled classes. When a user enrolls in a class the instructor of this class will have one student increment.
 
