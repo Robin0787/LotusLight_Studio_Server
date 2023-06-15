@@ -2,7 +2,7 @@
 
 ### Live Link to Lotus Light Studio -- https://lotus-light-studio.web.app/
 
-##### An ad-tech website that provides several classes for students to learn. The website has an admin and instructor panel where instructors can add classes and also remove their classes. After adding classes it will appear to admin to be approved. If admin approves it then it will display in the classes section and then students can enroll in the class. Admin manages all the users and classes of this website. Admin can make students instructors and admin and vice-versa after selecting classes from the class page. Users can show selected items in their dashboard selected-items route. After doing the payment the class will be moved to enrolled classes. When a user enrolls in a class the instructor of this class will have one student increment.
+##### An ad-tech website that offers a variety of programs for students to take. The website has an admin and teacher area where instructors may add and remove classes. After adding courses, it will appear to the admin that they have been authorized. If the admin accepts it, it will appear on the area of the course, where students can enroll. Admin is in charge of this website's users and classes. The admin may make students instructors, admin, and vice versa. Users' selected things will be seen on their dashboard's selected items route. After making the payment, the class will be added to the list of enrolled classes. When a user enrolls in a class, the instructor will have one new student in his/her profile.
 
 # Features
 

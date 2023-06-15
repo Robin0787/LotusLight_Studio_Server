@@ -96,7 +96,7 @@ async function run() {
     app.get('/enrolled-classes/:email', async(req, res) => {
       const email = req.params.email;
       const query = {userEmail: email};
-      const result = await enrolledClassCollection.find(query).toArray();
+      const result = (await enrolledClassCollection.find(query).toArray()).reverse();
       res.send(result);
     })
     // Getting payments based on user email
@@ -115,7 +115,11 @@ async function run() {
     })
     // Getting six popular classes
     app.get('/popular-classes', async (req, res) => {
-      const result = await classCollection.find({ enrolled: { $exists: true }, status: 'approved'}).sort({ enrolled: -1 }).toArray();
+      const result = await classCollection.find({ enrolled: { $exists: true }, status: 'approved'}).sort({ enrolled: -1 }).limit(6).toArray();
+      res.send(result);
+    })
+    app.get('/popular-instructors', async (req, res) => {
+      const result = await userCollection.find({students: {$exists: true}, role: 'instructor'}).sort({students: -1}).limit(6).toArray();
       res.send(result);
     })
     //--------------POST---------------------------------POST--------------------------POST
