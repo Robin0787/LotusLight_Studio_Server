@@ -122,6 +122,31 @@ async function run() {
       const result = await userCollection.find({students: {$exists: true}, role: 'instructor'}).sort({students: -1}).limit(6).toArray();
       res.send(result);
     })
+    // Getting admin stats
+    app.get('/admin-stats', async(req, res) => {
+      const [{totalAmount}] = await paymentCollection.aggregate([
+        {
+          $group: {
+            _id: null,
+            totalAmount: { $sum: '$price' }
+          }
+        }
+      ]).toArray();
+      const [{totalStudents, totalClasses}] = await userCollection.aggregate([
+        {
+          $match: { role: 'instructor' }
+        },
+        {
+          $group: {
+            _id : null,
+            totalStudents: { $sum: '$students' },
+            totalClasses: { $sum: '$classes' }
+          }
+        }
+      ]).toArray();
+      const totalInstructors = (await userCollection.find({role: 'instructor'}).toArray()).length;
+      res.send({totalStudents, totalClasses ,totalAmount, totalInstructors});
+    })
     //--------------POST---------------------------------POST--------------------------POST
     // Posting class to database
     app.post('/add-class', async(req, res) => {
