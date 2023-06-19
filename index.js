@@ -26,8 +26,12 @@ async function run() {
     // await client.connect();
     const userCollection = client.db("AllData").collection("users");
     const classCollection = client.db("AllData").collection("classes");
-    const selectedClassCollection = client.db("AllData").collection("selectedClasses");
-    const enrolledClassCollection = client.db("AllData").collection("enrolledClasses");
+    const selectedClassCollection = client
+      .db("AllData")
+      .collection("selectedClasses");
+    const enrolledClassCollection = client
+      .db("AllData")
+      .collection("enrolledClasses");
     const paymentCollection = client.db("AllData").collection("payments");
     //---------------GET----------------------------------GET---------------------------GET
     app.get("/users", async (req, res) => {
@@ -35,179 +39,239 @@ async function run() {
       res.send(result);
     });
     // Getting all the instructors
-    app.get('/instructors', async(req, res) => {
-      const query = {role: 'instructor'};
+    app.get("/instructors", async (req, res) => {
+      const query = { role: "instructor" };
       const instructors = await userCollection.find(query).toArray();
       res.send(instructors);
-    })
+    });
     // Getting specific user role
-    app.get('/user-role/:email', async(req, res) => {
+    app.get("/user-role/:email", async (req, res) => {
       const email = req.params.email;
-      const query = {email: email};
+      const query = { email: email };
       const user = await userCollection.findOne(query);
-      res.send({role: user?.role || 'student'});
-    })
+      res.send({ role: user?.role || "student" });
+    });
     // Getting all classes based on email
-    app.get('/classes/:email', async(req, res) => {
+    app.get("/classes/:email", async (req, res) => {
       const email = req.params.email;
-      const query = {instructorEmail: email};
+      const query = { instructorEmail: email };
       const classes = await classCollection.find(query).toArray();
       res.send(classes);
-
-    })
+    });
     // Getting specific class details
-    app.get('/class-details/:id', async(req, res) => {
+    app.get("/class-details/:id", async (req, res) => {
       const id = req.params.id;
-      const query = {_id: new ObjectId(id)};
+      const query = { _id: new ObjectId(id) };
       const result = await classCollection.findOne(query);
       res.send(result);
-    })
+    });
     // Getting all the classes form classCollection
-    app.get('/all-classes', async(req, res) => {
+    app.get("/all-classes", async (req, res) => {
       const result = (await classCollection.find().toArray()).reverse();
       res.send(result);
-    })
+    });
     // Getting all users
-    app.get('/all-users', async(req, res) => {
+    app.get("/all-users", async (req, res) => {
       const result = await userCollection.find().toArray();
       res.send(result);
-    })
+    });
     // Getting all approved classes
-    app.get('/approved-classes', async(req, res) => {
-      const query = {status: 'approved'};
+    app.get("/approved-classes", async (req, res) => {
+      const query = { status: "approved" };
       const result = await classCollection.find(query).toArray();
       res.send(result);
-    })
+    });
     // Getting all selected classes based on user email
-    app.get('/selected-classes/:email', async(req, res) => {
+    app.get("/selected-classes/:email", async (req, res) => {
       const email = req.params.email;
-      const query = {userEmail: email};
+      const query = { userEmail: email };
       const result = await selectedClassCollection.find(query).toArray();
       res.send(result);
-    })
+    });
     // Getting selected item details based on items id
-    app.get('/selected-item/:id', async(req, res) => {
+    app.get("/selected-item/:id", async (req, res) => {
       const id = req.params.id;
-      const query = {_id: new ObjectId(id)};
+      const query = { _id: new ObjectId(id) };
       const result = await selectedClassCollection.findOne(query);
       res.send(result);
-    })
+    });
     // Getting all enrolled classes;
-    app.get('/enrolled-classes/:email', async(req, res) => {
+    app.get("/enrolled-classes/:email", async (req, res) => {
       const email = req.params.email;
-      const query = {userEmail: email};
-      const result = (await enrolledClassCollection.find(query).toArray()).reverse();
+      const query = { userEmail: email };
+      const result = (
+        await enrolledClassCollection.find(query).toArray()
+      ).reverse();
       res.send(result);
-    })
+    });
     // Getting payments based on user email
-    app.get('/payments/:email', async(req, res) => {
+    app.get("/payments/:email", async (req, res) => {
       const email = req.params.email;
-      const query = {userEmail: email};
+      const query = { userEmail: email };
       const result = (await paymentCollection.find(query).toArray()).reverse();
       res.send(result);
     });
     // Getting specific instructors class
-    app.get('/instructor-classes/:email', async(req, res) => {
+    app.get("/instructor-classes/:email", async (req, res) => {
       const email = req.params.email;
-      const query = { instructorEmail: email, status: 'approved'};
+      const query = { instructorEmail: email, status: "approved" };
       const result = await classCollection.find(query).toArray();
       res.send(result);
-    })
+    });
     // Getting six popular classes
-    app.get('/popular-classes', async (req, res) => {
-      const result = await classCollection.find({ enrolled: { $exists: true }, status: 'approved'}).sort({ enrolled: -1 }).limit(6).toArray();
+    app.get("/popular-classes", async (req, res) => {
+      const result = await classCollection
+        .find({ enrolled: { $exists: true }, status: "approved" })
+        .sort({ enrolled: -1 })
+        .limit(6)
+        .toArray();
       res.send(result);
-    })
-    app.get('/popular-instructors', async (req, res) => {
-      const result = await userCollection.find({students: {$exists: true}, role: 'instructor'}).sort({students: -1}).limit(6).toArray();
+    });
+    app.get("/popular-instructors", async (req, res) => {
+      const result = await userCollection
+        .find({ students: { $exists: true }, role: "instructor" })
+        .sort({ students: -1 })
+        .limit(6)
+        .toArray();
       res.send(result);
-    })
+    });
     // Getting admin stats
-    app.get('/admin-stats', async(req, res) => {
-      const [{totalAmount}] = await paymentCollection.aggregate([
-        {
-          $group: {
-            _id: null,
-            totalAmount: { $sum: '$price' }
-          }
-        }
-      ]).toArray();
-      const [{totalStudents, totalClasses}] = await userCollection.aggregate([
-        {
-          $match: { role: 'instructor' }
-        },
-        {
-          $group: {
-            _id : null,
-            totalStudents: { $sum: '$students' },
-            totalClasses: { $sum: '$classes' }
-          }
-        }
-      ]).toArray();
-      const totalInstructors = (await userCollection.find({role: 'instructor'}).toArray()).length;
-      res.send({totalStudents, totalClasses ,totalAmount, totalInstructors});
+    app.get("/admin-stats", async (req, res) => {
+      const [{ totalAmount }] = await paymentCollection
+        .aggregate([
+          {
+            $group: {
+              _id: null,
+              totalAmount: { $sum: "$price" },
+            },
+          },
+        ])
+        .toArray();
+      const [{ totalStudents, totalClasses }] = await userCollection
+        .aggregate([
+          {
+            $match: { role: "instructor" },
+          },
+          {
+            $group: {
+              _id: null,
+              totalStudents: { $sum: "$students" },
+              totalClasses: { $sum: "$classes" },
+            },
+          },
+        ])
+        .toArray();
+      const totalInstructors = (
+        await userCollection.find({ role: "instructor" }).toArray()
+      ).length;
+      res.send({ totalStudents, totalClasses, totalAmount, totalInstructors });
+    });
+    // Getting user stats
+    app.get("/user-stats/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { userEmail: email };
+      const enrolledClasses = (
+        await enrolledClassCollection.find(query).toArray()
+      ).length;
+      const selectedClasses = (
+        await selectedClassCollection.find(query).toArray()
+      ).length;
+      const payments = await paymentCollection.find(query).toArray();
+      const totalPayment =
+        payments?.reduce((total, item) => {
+          return total + item.price;
+        }, 0) || 0;
+      res.send({ selectedClasses, enrolledClasses, totalPayment });
+    });
+    // Getting instructor Stats
+    app.get('/instructor-stats/:email', async (req, res) => {
+      const email = req.params.email;
+      const query = {email: email, role: 'instructor'};
+      const instructor = await userCollection.findOne(query);
+      const {classes, students} = instructor;
+      const approvedClasses = (await classCollection.find({instructorEmail: email, status: 'approved'}).toArray()).length;
+      res.send({classes, students, approvedClasses: approvedClasses});
+    })
+    // Getting user profile details
+    app.get('/profile/:email', async(req, res) => {
+      const email = req.params.email;
+      const query = {email: email};
+      const profile = await userCollection.findOne(query);
+      res.send(profile);
     })
     //--------------POST---------------------------------POST--------------------------POST
     // Posting class to database
-    app.post('/add-class', async(req, res) => {
+    app.post("/add-class", async (req, res) => {
       const classInfo = req.body;
       const result = await classCollection.insertOne(classInfo);
       res.send(result);
     });
     // Increasing instructors class number
-    app.post('/update-class-number/:email', async(req, res) => {
+    app.post("/update-class-number/:email", async (req, res) => {
       const email = req.params.email;
-      const query = {email: email};
-      const result = await userCollection.findOneAndUpdate(query, {$inc: {classes: 1}}, {returnOriginal: false});
+      const query = { email: email };
+      const result = await userCollection.findOneAndUpdate(
+        query,
+        { $inc: { classes: 1 } },
+        { returnOriginal: false }
+      );
       res.send(result);
     });
     // Increasing instructors students number
-     app.post('/update-students-number/:email', async(req, res) => {
+    app.post("/update-students-number/:email", async (req, res) => {
       const email = req.params.email;
-      const query = {email: email};
-      const result = await userCollection.findOneAndUpdate(query, {$inc: {students: 1}}, {returnOriginal: false});
+      const query = { email: email };
+      const result = await userCollection.findOneAndUpdate(
+        query,
+        { $inc: { students: 1 } },
+        { returnOriginal: false }
+      );
       res.send(result);
     });
     // Increasing enrolled students based on classId
-    app.post('/update-enrolled-students/:id', async(req, res) => {
+    app.post("/update-enrolled-students/:id", async (req, res) => {
       const id = req.params.id;
-      const query = {_id: new ObjectId(id)};
-      const result = await classCollection.findOneAndUpdate(query, {$inc: {enrolled: 1}}, {returnOriginal: false});
+      const query = { _id: new ObjectId(id) };
+      const result = await classCollection.findOneAndUpdate(
+        query,
+        { $inc: { enrolled: 1 } },
+        { returnOriginal: false }
+      );
       res.send(result);
     });
     // Storing user selected Item;
-    app.post('/add-selected-class', async(req, res) => {
+    app.post("/add-selected-class", async (req, res) => {
       const selectedItem = req.body;
       const result = await selectedClassCollection.insertOne(selectedItem);
       res.send(result);
-    })
+    });
     // Creating payment intent
-    app.post('/create-payment-intent', async(req, res) => {
-      const {price} = req.body;
+    app.post("/create-payment-intent", async (req, res) => {
+      const { price } = req.body;
       const amount = price * 100;
       const paymentIntent = await stripe.paymentIntents.create({
         amount,
-        currency: 'usd',
-        payment_method_types: ['card']
+        currency: "usd",
+        payment_method_types: ["card"],
       });
-      res.send({ClientSecret: paymentIntent.client_secret});
+      res.send({ ClientSecret: paymentIntent.client_secret });
     });
-    app.post('/add-class-to-enrolled', async(req, res) => {
+    app.post("/add-class-to-enrolled", async (req, res) => {
       const body = req.body;
-      const result = await enrolledClassCollection.insertOne({...body});
+      const result = await enrolledClassCollection.insertOne({ ...body });
       res.send(result);
-    })
-    // Storing payment invoice 
-    app.post('/store-payment-details', async(req, res)=>{
+    });
+    // Storing payment invoice
+    app.post("/store-payment-details", async (req, res) => {
       const body = req.body;
-      const result = await paymentCollection.insertOne({...body});
+      const result = await paymentCollection.insertOne({ ...body });
       res.send(result);
-    })
+    });
     //--------------PUT---------------------------------PUT---------------------------PUT
     // Storing the user to database for further usage
     app.put("/store-user/:email", async (req, res) => {
       const email = req.params.email;
-      const {details} = req.body;
+      const { details } = req.body;
       const query = { email: email };
       const updateDoc = {
         $set: details,
@@ -218,56 +282,56 @@ async function run() {
     });
     //-------------PATCH-------------------------------PATCH-------------------------PATCH
     // Updating class info
-    app.patch('/update-class/:id', async(req, res) => {
+    app.patch("/update-class/:id", async (req, res) => {
       const id = req.params.id;
-      const query = {_id: new ObjectId(id)};
+      const query = { _id: new ObjectId(id) };
       const updateInfo = req.body;
       const updateDoc = {
-        $set: {...updateInfo}
-      }
+        $set: { ...updateInfo },
+      };
       const result = await classCollection.updateOne(query, updateDoc);
       res.send(result);
-    })
+    });
     // Updating class status and feedback by admin
-    app.patch('/update-class-status/:id', async(req,res) => {
+    app.patch("/update-class-status/:id", async (req, res) => {
       const id = req.params.id;
       const updatedInfo = req.body;
-      const query = {_id: new ObjectId(id)};
+      const query = { _id: new ObjectId(id) };
       const updateDoc = {
-        $set: {...updatedInfo}
-      }
-      const options = {upsert: true};
+        $set: { ...updatedInfo },
+      };
+      const options = { upsert: true };
       const result = await classCollection.updateOne(query, updateDoc, options);
       res.send(result);
-    })
+    });
     // Updating user status by admin
-    app.patch('/update-user/:id', async(req, res) => {
+    app.patch("/update-user/:id", async (req, res) => {
       const id = req.params.id;
-      const {status} = req.body;
-      const query = {_id : new ObjectId(id)};
+      const { status } = req.body;
+      const query = { _id: new ObjectId(id) };
       const updatedDoc = {
-        $set: {role: status}
-      }
-      const options = {upsert: true}
+        $set: { role: status },
+      };
+      const options = { upsert: true };
       const result = await userCollection.updateOne(query, updatedDoc, options);
       res.send(result);
-    })
-    
+    });
+
     //------------DELETE------------------------------DELETE-------------------------DELETE
     // Deleting specific instructors class based on id
-    app.delete('/delete-class/:id', async(req, res) => {
+    app.delete("/delete-class/:id", async (req, res) => {
       const id = req.params.id;
-      const query = {_id: new ObjectId(id)};
+      const query = { _id: new ObjectId(id) };
       const result = await classCollection.deleteOne(query);
       res.send(result);
-    })
+    });
     // Deleting students selected class based on id
-    app.delete('/delete-selected-class/:id', async(req, res) => {
+    app.delete("/delete-selected-class/:id", async (req, res) => {
       const id = req.params.id;
-      const query = {_id: new ObjectId(id)};
+      const query = { _id: new ObjectId(id) };
       const result = await selectedClassCollection.deleteOne(query);
       res.send(result);
-    })
+    });
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Successfully connected to Database!");
