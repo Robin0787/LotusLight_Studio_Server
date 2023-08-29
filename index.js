@@ -2,6 +2,7 @@ const express = require("express");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const app = express();
 const port = process.env.PORT || 5000;
+const jwt = require('jsonwebtoken');
 const cors = require("cors");
 require("dotenv").config();
 
@@ -26,13 +27,16 @@ async function run() {
     // await client.connect();
     const userCollection = client.db("AllData").collection("users");
     const classCollection = client.db("AllData").collection("classes");
-    const selectedClassCollection = client
-      .db("AllData")
-      .collection("selectedClasses");
-    const enrolledClassCollection = client
-      .db("AllData")
-      .collection("enrolledClasses");
+    const selectedClassCollection = client.db("AllData").collection("selectedClasses");
+    const enrolledClassCollection = client .db("AllData").collection("enrolledClasses");
     const paymentCollection = client.db("AllData").collection("payments");
+
+    app.post('/get-token', (req, res) => {
+      const user = req.body;
+      const token = process.env.USER_TOKEN;
+      const userToken = jwt.sign(user, token, {expiresIn: '10m'});
+      res.send({userToken});
+    })
     //---------------GET----------------------------------GET---------------------------GET
     app.get("/users", async (req, res) => {
       const result = await userCollection.find().toArray();
